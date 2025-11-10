@@ -18,7 +18,7 @@ const AIAnnouncer: React.FC = () => {
 
     if (isEnabled) {
       checkForNewTrack();
-      checkIntervalRef.current = setInterval(checkForNewTrack, 30000);
+      checkIntervalRef.current = setInterval(checkForNewTrack, 60000);
     }
 
     return () => {
