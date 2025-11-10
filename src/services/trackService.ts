@@ -18,7 +18,7 @@ export interface ShoutcastData {
   timestamp: string;
 }
 
-const SHOUTCAST_URL = 'http://uk7freenew.listen2myradio.com:16784';
+const SHOUTCAST_URL = 'http://uk7freenew.listen2myradio.com:16784/played.html';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '784512235689';
 
