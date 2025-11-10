@@ -66,10 +66,10 @@ Exemplo de estilo: "Olá, aqui é o DJ Virtual Julio Campos Machado da Tatuape F
 
 const generateFallbackComment = (track: TrackInfo): string => {
   const comments = [
-    `Olá, aqui é a DJ Virtual da Tatuape FM! Que som incrível de ${track.artist}! "${track.trackName}" é daquelas músicas que nunca saem de moda. Aproveitem e aumentem o volume!`,
-    `Olá, aqui é a DJ Virtual da Tatuape FM! ${track.artist} arrasando com "${track.trackName}"! Uma verdadeira lenda do rock tocando agora na nossa programação. Continuem ligados!`,
-    `Olá, aqui é a DJ Virtual da Tatuape FM! Que clássico maravilhoso! "${track.trackName}" de ${track.artist} é pura nostalgia e energia. A Tatuape FM não para!`,
-    `Olá, aqui é a DJ Virtual da Tatuape FM! ${track.artist} com "${track.trackName}" - simplesmente imperdível! Essa música tem uma história incrível. Fiquem com a gente!`,
+    `Olá, aqui é o DJ Virtual Julio Campos Machado Que som incrível de ${track.artist}! "${track.trackName}" é daquelas músicas que nunca saem de moda. Aproveitem e aumentem o volume!`,
+    `Olá, aqui é o DJ Virtual Julio Campos Machado! ${track.artist} arrasando com "${track.trackName}"! Uma verdadeira lenda do rock tocando agora na nossa programação. Continuem ligados!`,
+    `Olá, aqui é o DJ Virtual Julio Campos Machado! Que clássico maravilhoso! "${track.trackName}" de ${track.artist} é pura nostalgia e energia. A Tatuape FM não para!`,
+    `Olá, aqui é o DJ Virtual Julio Campos Machado! ${track.artist} com "${track.trackName}" - simplesmente imperdível! Essa música tem uma história incrível. Fiquem com a gente!`,
   ];
 
   return comments[Math.floor(Math.random() * comments.length)];
