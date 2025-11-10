@@ -16,20 +16,31 @@ export const speakText = (text: string): Promise<void> => {
     utterance.volume = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    // Prioritize more natural-sounding voices (e.g., Google, Microsoft) for pt-BR
-    const preferredPortugueseVoice = voices.find(
+    // Try to find a French voice for a French accent
+    const frenchVoice = voices.find(
       (voice) =>
-        voice.lang.includes('pt-BR') &&
-        (voice.name.includes('Google') || voice.name.includes('Microsoft'))
+        voice.lang.includes('fr-FR') &&
+        (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('French'))
     );
 
-    if (preferredPortugueseVoice) {
-      utterance.voice = preferredPortugueseVoice;
+    if (frenchVoice) {
+      utterance.voice = frenchVoice;
     } else {
-      // Fallback to any pt-BR voice if preferred not found
-      const anyPortugueseVoice = voices.find((voice) => voice.lang.includes('pt-BR'));
-      if (anyPortugueseVoice) {
-        utterance.voice = anyPortugueseVoice;
+      // Fallback to a preferred Portuguese voice if no suitable French voice is found
+      const preferredPortugueseVoice = voices.find(
+        (voice) =>
+          voice.lang.includes('pt-BR') &&
+          (voice.name.includes('Google') || voice.name.includes('Microsoft'))
+      );
+
+      if (preferredPortugueseVoice) {
+        utterance.voice = preferredPortugueseVoice;
+      } else {
+        // Fallback to any pt-BR voice if preferred not found
+        const anyPortugueseVoice = voices.find((voice) => voice.lang.includes('pt-BR'));
+        if (anyPortugueseVoice) {
+          utterance.voice = anyPortugueseVoice;
+        }
       }
     }
 
