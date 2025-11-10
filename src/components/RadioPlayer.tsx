@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getShoutcastData, ShoutcastData } from '../services/trackService';
 
 interface RadioPlayerProps {
   className?: string;
@@ -15,6 +16,8 @@ declare global {
 const RadioPlayer: React.FC<RadioPlayerProps> = ({ className = "" }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [shoutcastData, setShoutcastData] = useState<ShoutcastData | null>(null);
+  const [lastFetchedTrackKey, setLastFetchedTrackKey] = useState<string>('');
 
   const radioData = {
     id: 490545,
@@ -50,6 +53,28 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ className = "" }) => {
       loadExternalScripts();
     }
   }, []);
+
+  useEffect(() => {
+    const fetchShoutcastData = async () => {
+      try {
+        const data = await getShoutcastData();
+        if (data) {
+          const currentTrackKey = `${data.current.artist}-${data.current.title}`;
+          if (currentTrackKey !== lastFetchedTrackKey) {
+            setShoutcastData(data);
+            setLastFetchedTrackKey(currentTrackKey);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching Shoutcast data:", error);
+      }
+    };
+
+    fetchShoutcastData();
+    const interval = setInterval(fetchShoutcastData, 15000); // Fetch every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [lastFetchedTrackKey]);
 
   const loadExternalScripts = () => {
     const sm2Script = document.createElement('script');
@@ -141,6 +166,33 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ className = "" }) => {
             </button>
           </div>
         </div>
+
+        {shoutcastData && (
+          <div className="mt-6 space-y-4">
+            <div className="bg-white rounded-xl p-4 shadow-md border border-blue-100">
+              <p className="text-xs font-semibold text-blue-600 mb-1">Tocando Agora</p>
+              <h4 className="font-bold text-lg text-slate-800 truncate">
+                {shoutcastData.current.title}
+              </h4>
+              <p className="text-sm text-slate-600 truncate">
+                {shoutcastData.current.artist}
+              </p>
+            </div>
+
+            {shoutcastData.history.length > 0 && (
+              <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100">
+                <p className="text-xs font-semibold text-slate-600 mb-2">Últimas Músicas</p>
+                <ul className="space-y-2">
+                  {shoutcastData.history.slice(0, 3).map((track, index) => (
+                    <li key={index} className="text-sm text-slate-700 truncate">
+                      <span className="font-medium">{track.trackName}</span> por {track.artist}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-6 text-center">
           <div className="flex items-center justify-center space-x-2">

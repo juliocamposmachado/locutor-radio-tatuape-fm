@@ -18,92 +18,89 @@ export interface ShoutcastData {
   timestamp: string;
 }
 
-const SHOUTCAST_URL = 'http://uk7freenew.listen2myradio.com:16784/played.html';
+const SHOUTCAST_BASE_URL = 'http://uk7freenew.listen2myradio.com:16784';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '784512235689';
 
 const parseShoutcastHtml = (html: string): { artist: string; title: string } => {
-  const songMatch = html.match(/Current Song:<\/b>\s*([^<]+)/);
-  const currentSong = songMatch ? songMatch[1].trim() : 'Desconhecida';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const firstRow = doc.querySelector('table.border_color_2 > tbody > tr:nth-child(2)');
 
-  const songParts = currentSong.match(/^(.+?)\s*-\s*(.+?)(?:\s*\(\d+\))?$/);
-
-  if (songParts) {
-    return {
-      artist: songParts[1].trim(),
-      title: songParts[2].trim(),
-    };
+  if (firstRow) {
+    const songTitleCell = firstRow.querySelector('td:nth-child(2)');
+    if (songTitleCell) {
+      const fullSongTitle = songTitleCell.textContent || '';
+      const songParts = fullSongTitle.split(' - ');
+      if (songParts.length >= 2) {
+        return {
+          artist: songParts[0].trim(),
+          title: songParts.slice(1).join(' - ').replace('Current Song', '').trim(),
+        };
+      } else {
+        return { artist: 'Artista Desconhecido', title: fullSongTitle.replace('Current Song', '').trim() };
+      }
+    }
   }
-
-  return {
-    artist: 'Artista Desconhecido',
-    title: currentSong,
-  };
+  return { artist: 'Artista Desconhecido', title: 'Música Desconhecida' };
 };
 
 const parseHistoryHtml = (html: string): TrackInfo[] => {
   const history: TrackInfo[] = [];
   const lines = html.split('\n');
 
-  for (let i = 0; i < Math.min(lines.length, 200); i++) {
-    const line = lines[i];
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    // Example: 01:11:48	Lady Wray - They won't hang around	Current Song
+    const match = trimmedLine.match(/^\d{2}:\d{2}:\d{2}\t(.+?)\s-\s(.+?)(?:\tCurrent Song)?$/);
 
-    if (line.includes('</tr>') || line.includes('</td>')) {
-      const cleanedLine = line
-        .replace(/<[^>]*>/g, '')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .trim();
+    if (match && match[1] && match[2]) {
+      const artist = match[1].trim();
+      const title = match[2].trim();
 
-      if (cleanedLine && cleanedLine.length > 5 && history.length < 5) {
-        const parts = cleanedLine.split(' - ');
-
-        if (parts.length >= 2) {
-          const artist = parts[1]?.trim();
-          const title = parts[2]?.trim() || parts.slice(2).join(' - ').trim();
-
-          if (artist && title && artist.length > 1 && title.length > 1) {
-            const isDuplicate = history.some(h => h.artist === artist && h.trackName === title);
-            if (!isDuplicate) {
-              history.push({
-                artist,
-                trackName: title,
-              });
-            }
-          }
+      if (artist && title && artist.length > 1 && title.length > 1) {
+        const isDuplicate = history.some(h => h.artist === artist && h.trackName === title);
+        if (!isDuplicate) {
+          history.push({
+            artist,
+            trackName: title,
+          });
         }
       }
     }
+    if (history.length >= 4) break; // Get current + 3 previous
   }
 
-  return history.slice(0, 5);
+  return history;
 };
 
 export const getShoutcastData = async (): Promise<ShoutcastData | null> => {
   try {
-    const currentUrl = `${SHOUTCAST_URL}/admin.cgi?user=${ADMIN_USER}&pass=${ADMIN_PASS}`;
-    const currentResponse = await fetch(currentUrl, {
+    // Fetch current song from played.html
+    const currentSongUrl = `${SHOUTCAST_BASE_URL}/played.html`;
+    const currentSongResponse = await fetch(currentSongUrl, {
       method: 'GET',
     });
 
-    if (!currentResponse.ok) {
+    if (!currentSongResponse.ok) {
       console.error('Erro ao buscar dados atuais do Shoutcast');
       return null;
     }
 
-    const currentHtml = await currentResponse.text();
-    const { artist, title } = parseShoutcastHtml(currentHtml);
+    const currentSongHtml = await currentSongResponse.text();
+    const { artist, title } = parseShoutcastHtml(currentSongHtml);
 
+    // Fetch history from viewlog
     let history: TrackInfo[] = [];
     try {
-      const historyUrl = `${SHOUTCAST_URL}/admin.cgi?mode=viewlog&user=${ADMIN_USER}&pass=${ADMIN_PASS}`;
+      const historyUrl = `${SHOUTCAST_BASE_URL}/admin.cgi?mode=viewlog&user=${ADMIN_USER}&pass=${ADMIN_PASS}`;
       const historyResponse = await fetch(historyUrl, {
         method: 'GET',
       });
 
       if (historyResponse.ok) {
-        const historyHtml = await historyResponse.text();
-        history = parseHistoryHtml(historyHtml);
+        const historyText = await historyResponse.text();
+        history = parseHistoryHtml(historyText);
       }
     } catch (error) {
       console.error('Erro ao buscar histórico:', error);
@@ -123,7 +120,7 @@ export const getShoutcastData = async (): Promise<ShoutcastData | null> => {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('Erro ao buscar dados do Shoutcast:', error);
+    console.error('Erro ao buscar dados do Shoutcast', error);
     return null;
   }
 };
