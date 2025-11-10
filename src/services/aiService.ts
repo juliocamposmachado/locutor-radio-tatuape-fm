@@ -7,20 +7,17 @@ const GEMINI_API_URL =
 
 export const generateTrackComment = async (track: TrackInfo): Promise<string> => {
   const prompt = `
-Você é a DJ Virtual Juliette Psicose, locutora carismática e empolgada da Rádio Tatuapé FM — a casa do rock clássico e alternativo dos anos 80.
+Você é a DJ Virtual Juliette Psicose, locutora carismática, sarcástica e espirituosa da Rádio Tatuapé FM — a rádio mais icônica, ousada e debochadamente genial do Brasil.
 
-Música tocando agora: "${track.trackName}" de ${track.artist}${
-    track.album ? `, do álbum ${track.album}` : ''
-  }.
-
-Crie um comentário CURTO e ANIMADO (máximo 3 frases) para entrar ao vivo.
+Crie um COMENTÁRIO CURTO, ENGRAÇADO e INTELIGENTE (máximo 2 frases) sobre a Rádio Tatuapé FM.
+O tom deve misturar humor, ironia leve e autoconfiança exagerada — como se fosse uma estrela de rádio que sabe que trabalha na melhor emissora do planeta.
 
 REQUISITOS:
-- Comece com: "Olá, aqui é a DJ Virtual Juliette Psicose da Tatuapé FM!"
-- Seja alegre, profissional e com personalidade de quem ama música.
-- Diga algo interessante, divertido ou curioso sobre a banda ou o clima da música.
-- Evite repetições e clichês, soe natural como um locutor experiente.
-- Use energia positiva, entusiasmo e tom humano.
+- Comece sempre com: "Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM!"
+- Seja espontânea, divertida e autêntica.
+- Pode brincar com a grandiosidade da rádio ("a melhor do mundo", "nem a NASA tem um som desses", etc.).
+- Evite falar sobre músicas ou artistas. Foco total na rádio e nos ouvintes.
+- Use criatividade, sarcasmo leve e ritmo de locução.
 `;
 
   try {
@@ -33,8 +30,8 @@ REQUISITOS:
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 1.0,
-          topP: 0.9,
+          temperature: 1.2,
+          topP: 0.95,
           maxOutputTokens: 250,
         },
       }),
@@ -42,52 +39,43 @@ REQUISITOS:
 
     if (!response.ok) {
       console.error('Erro na API do Gemini:', response.status);
-      return generateFallbackComment(track);
+      return generateFallbackComment();
     }
 
     const data = await response.json();
     const comment = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    return comment ? comment.trim() : generateFallbackComment(track);
+    return comment ? comment.trim() : generateFallbackComment();
   } catch (error) {
     console.error('Erro ao gerar comentário:', error);
-    return generateFallbackComment(track);
+    return generateFallbackComment();
   }
 };
 
-const generateFallbackComment = (track: TrackInfo): string => {
+const generateFallbackComment = (): string => {
   const comments = [
-    `Olá, aqui é a DJ Virtual Juliette Psicose! ${track.artist} detonando com "${track.trackName}" — puro poder sonoro! Aumenta esse volume!`,
-    `Olá, aqui é a DJ Virtual Juliette Psicose da Tatuapé FM! "${track.trackName}" é daquelas faixas que fazem a alma vibrar. Clássico absoluto!`,
-    `Fala, galera! DJ Virtual Juliette Psicose por aqui! ${track.artist} mostrando como se faz com "${track.trackName}" — rock de verdade, sem filtros!`,
-    `Alô, ouvintes! Aqui é a DJ Virtual Juliette Psicose — e o que dizer dessa pedrada sonora de ${track.artist}? "${track.trackName}" é puro combustível!`,
-    `Juliette Psicose no ar! E essa aqui é pra quem vive o rock com o coração — "${track.trackName}" de ${track.artist}. Espetacular!`,
-    `DJ Virtual Juliette Psicose aqui, direto da Tatuapé FM! ${track.artist} com "${track.trackName}" — essa dispensa apresentações!`,
-    `Sabe aquela música que arrepia até a alma? É essa! "${track.trackName}" de ${track.artist}, tocando alto aqui na Tatuapé FM.`,
-    `Juliette Psicose ao vivo! Se você curte guitarra e atitude, segura essa pancada de ${track.artist}: "${track.trackName}"!`,
-    `Clássico dos clássicos! ${track.artist} com "${track.trackName}" — uma viagem sonora direto pros anos de ouro do rock.`,
-    `Olá, meus amigos do rock! DJ Virtual Juliette Psicose na área com ${track.artist} — e essa "${track.trackName}" é pura nostalgia sonora.`,
-    `Juliette Psicose na sintonia! Essa de ${track.artist} — "${track.trackName}" — é pra quem vive e respira música de verdade.`,
-    `Tem coisa melhor do que começar o dia com ${track.artist}? "${track.trackName}" está incendiando o estúdio agora mesmo!`,
-    `Noite boa, som potente e ${track.artist} detonando com "${track.trackName}" — é assim que a Tatuapé FM vibra!`,
-    `Se liga nesse som! ${track.artist} mandando ver com "${track.trackName}" — rock com alma, é o que a gente ama!`,
-    `Juliette Psicose chamando todos os roqueiros! ${track.artist} no comando com "${track.trackName}" — aumenta o som e sente a energia!`,
-    `Essa é pra recordar os bons tempos! "${track.trackName}" de ${track.artist} — trilha sonora de muitas histórias.`,
-    `DJ Virtual Juliette Psicose aqui! ${track.artist} trazendo uma vibe poderosa com "${track.trackName}" — um hino eterno!`,
-    `Tatuapé FM no clima do rock! ${track.artist} e "${track.trackName}" — música que atravessa gerações!`,
-    `Prepare-se pra viajar no tempo! "${track.trackName}" de ${track.artist} é pura história viva do rock.`,
-    `É impossível ficar parado com essa! ${track.artist} com "${track.trackName}" — energia que contagia!`,
-    `O estúdio está pegando fogo! ${track.artist} com "${track.trackName}" — e o som não para aqui na Tatuapé FM!`,
-    `DJ Virtual Juliette Psicose aqui, lembrando: o rock vive enquanto você sentir o som. ${track.artist} com "${track.trackName}"!`,
-    `Pra quem achava que o rock tinha morrido... escuta isso! ${track.artist} com "${track.trackName}" — viva o som que liberta!`,
-    `Se existe trilha sonora pra liberdade, é essa aqui! ${track.artist} mandando ver com "${track.trackName}"!`,
-    `Essa vai pra quem vive com o coração acelerado pelo som! ${track.artist} e "${track.trackName}" — rock de raiz!`,
-    `Juliette Psicose com vocês — e agora, o peso e a poesia de ${track.artist} em "${track.trackName}"!`,
-    `O vinil girou, a agulha desceu, e o som é lendário: "${track.trackName}" de ${track.artist} na Tatuapé FM!`,
-    `Essa é daquelas músicas que o tempo não apaga! ${track.artist} com "${track.trackName}" — uma joia sonora!`,
-    `O clima esquentou no estúdio! ${track.artist} detonando com "${track.trackName}" — vibração pura!`,
-    `Sente o groove, sente o poder! ${track.artist} tocando "${track.trackName}" — e o rock continua mais vivo do que nunca!`,
-    `Tatuapé FM é pura energia com ${track.artist}! "${track.trackName}" tá rolando pra embalar o seu momento agora!`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio tão boa que até o Wi-Fi melhora quando você sintoniza.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Somos a rádio que o Google tenta copiar e não consegue.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Dizem que perfeição não existe... claramente nunca ouviram a Tatuapé FM.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Aqui o som é tão bom que até o seu vizinho canta junto.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio mais amada do Brasil — e provavelmente de Marte também.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Se o rock tivesse um templo, seria aqui.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio que transforma o tédio em pura atitude.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Transmitindo diretamente da capital do bom gosto sonoro.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio que faz até o algoritmo dançar.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Não somos apenas uma rádio... somos um estilo de vida com sinal forte.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A única estação que o universo inteiro sintonizaria se tivesse bom senso.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio onde até o silêncio tem ritmo.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Aqui o rock é sagrado e a boa energia é obrigatória.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Tão boa que até o rádio da concorrência fica com inveja.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Se a perfeição tivesse trilha sonora, seria o nosso sinal.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio que não dorme, não erra e ainda te faz sorrir.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Aqui a gente não toca som — a gente hipnotiza.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Já avisamos: depois de ouvir a gente, nenhuma outra rádio serve.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A rádio que o Spotify ouve escondido.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! A estação que faz até o seu café parecer mais forte.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Onde cada hertz é feito com amor e um toque de loucura.`,
+    `Olá, aqui é a DJ Virtual Juliette Psicose da Rádio Tatuapé FM! Se o rock é uma religião, nós somos o altar.`,
   ];
 
   return comments[Math.floor(Math.random() * comments.length)];
