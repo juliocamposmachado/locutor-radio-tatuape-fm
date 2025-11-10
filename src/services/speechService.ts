@@ -11,23 +11,23 @@ export const speakText = (text: string): Promise<void> => {
     const utterance = new SpeechSynthesisUtterance(text);
 
     utterance.lang = 'pt-BR';
-    utterance.rate = 1.1;
-    utterance.pitch = 1.1;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const portugueseVoice = voices.find(
+    // Prioritize more natural-sounding voices (e.g., Google, Microsoft) for pt-BR
+    const preferredPortugueseVoice = voices.find(
       (voice) =>
         voice.lang.includes('pt-BR') &&
-        (voice.name.includes('Female') ||
-          voice.name.includes('Google') ||
-          voice.name.includes('Microsoft'))
+        (voice.name.includes('Google') || voice.name.includes('Microsoft'))
     );
 
-    if (portugueseVoice) {
-      utterance.voice = portugueseVoice;
+    if (preferredPortugueseVoice) {
+      utterance.voice = preferredPortugueseVoice;
     } else {
-      const anyPortugueseVoice = voices.find((voice) => voice.lang.includes('pt'));
+      // Fallback to any pt-BR voice if preferred not found
+      const anyPortugueseVoice = voices.find((voice) => voice.lang.includes('pt-BR'));
       if (anyPortugueseVoice) {
         utterance.voice = anyPortugueseVoice;
       }
